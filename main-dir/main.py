@@ -112,7 +112,7 @@ if __name__ == '__main__':
     frame_queues = [Queue(), Queue()]
     output_queues = [Queue(), Queue()]
 
-    video_capture = cv2.VideoCapture(1)
+    video_capture = cv2.VideoCapture(0)
 
     capture_thread = Thread(target=capture_frame, args=(video_capture, frame_queues))
     road_thread = Thread(target=road_func, args=(frame_queues[0], output_queues[0]))
