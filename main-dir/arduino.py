@@ -1,9 +1,10 @@
+import serial
 
 def constrain(val, minv, maxv):
     return min(maxv, max(minv, val))
 
 
-def command(s, angle, dir, speed):
+def command(angle, dir, speed):
     comm = "SPD {},{},{} ".format(constrain(int(angle), 50, 119), dir, speed)
     # print(comm)
     if s is not None:
@@ -11,4 +12,4 @@ def command(s, angle, dir, speed):
 
 # s = serial.Serial('/dev/ttyUSB0', 115200, timeout=1)
 # s = serial.Serial('COM1', 115200, timeout=1)
-s = None
+s: serial.Serial = None
