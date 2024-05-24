@@ -6,6 +6,7 @@ import cv2
 import torch
 import torch.nn as nn
 import torch.optim as optim
+import torch.multiprocessing as tmp
 from net_func import (
     YOLOv3,
     device,
@@ -16,6 +17,8 @@ from net_func import (
     s,
     convert_cells_to_bboxes,
 )
+
+tmp.set_start_method('spawn')
 
 class_labels = [ 'NerovDorog', 'PrVstrech', 'SvetGo', 'SvetStop', 'park', 'stop', ]
 
@@ -32,7 +35,7 @@ if load_model:
 
 model.eval()
 
-vid = cv2.VideoCapture(1)
+vid = cv2.VideoCapture(0)
 vid.set(cv2.CAP_PROP_BUFFERSIZE, 0)
 
 while cv2.waitKey(1) != ord('q'):
@@ -69,42 +72,43 @@ while cv2.waitKey(1) != ord('q'):
 
                 # Plotting the image with bounding boxes for each image in the batch
 
-    box = max(bboxes[0], key=lambda x: x[1])
-    # boxes = [box for box in bboxes[0] if box[1] > 0.5]
-    # box = max(boxes, key=lambda x: (len(tuple(filter(lambda y: y[0] == x[0], boxes))), x[1]))
-    # box = max(boxes, key=lambda x: max(filter(lambda y: y[0] == x[0], boxes))[1])
+    boxes = [box for box in bboxes[0] if box[1] > 0.7]
+    if len(boxes) != 0:
+        box = max(boxes, key=lambda x: x[1])
+        # box = max(boxes, key=lambda x: (len(tuple(filter(lambda y: y[0] == x[0], boxes))), x[1]))
+        # box = max(boxes, key=lambda x: max(filter(lambda y: y[0] == x[0], boxes))[1])
 
-    # Getting the height and width of the image
-    h, w, _ = img.shape
+        # Getting the height and width of the image
+        h, w, _ = img.shape
 
-    # Get the class from the box
-    class_pred = int(box[0])
-    print(class_labels[class_pred])
-    perch = box[1]
-    # Get the center x and y coordinates
-    box = box[2:]
-    for i in range(len(box)):
-        if box[i] > 1:
-            box[i] = 1
-    # Get the upper left corner coordinates
-    upper_left_x = box[0] - box[2] / 2
-    upper_left_y = box[1] - box[3] / 2
+        # Get the class from the box
+        class_pred = int(box[0])
+        perch = box[1]
+        print(class_labels[class_pred], perch)
+        # Get the center x and y coordinates
+        box = box[2:]
+        for i in range(len(box)):
+            if box[i] > 1:
+                box[i] = 1
+        # Get the upper left corner coordinates
+        upper_left_x = box[0] - box[2] / 2
+        upper_left_y = box[1] - box[3] / 2
 
-    cv2.rectangle(
-        img,
-        (int(upper_left_x * w), int(upper_left_y * h)),
-        (int(upper_left_x * w + box[2] * w), int(upper_left_y * h + box[3] * h)),
-        (0, 0, 255),
-        2
-    )
-    # print(class_labels[int(class_pred)], perch)
-    cv2.putText(
-        img,
-        f'{class_labels[int(class_pred)]} ({perch})',
-        (int(upper_left_x * w), int(upper_left_y * h)),
-        cv2.FONT_HERSHEY_SIMPLEX,
-        0.5,
-        (0, 0, 255),
-        2,
-    )
+        cv2.rectangle(
+            img,
+            (int(upper_left_x * w), int(upper_left_y * h)),
+            (int(upper_left_x * w + box[2] * w), int(upper_left_y * h + box[3] * h)),
+            (0, 0, 255),
+            2
+        )
+        # print(class_labels[int(class_pred)], perch)
+        cv2.putText(
+            img,
+            f'{class_labels[int(class_pred)]} ({perch})',
+            (int(upper_left_x * w), int(upper_left_y * h)),
+            cv2.FONT_HERSHEY_SIMPLEX,
+            0.5,
+            (0, 0, 255),
+            2,
+        )
     cv2.imshow('a', img)

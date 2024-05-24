@@ -15,13 +15,14 @@ from .net_func import (
     ANCHORS,
     s,
     convert_cells_to_bboxes,
+    nms
 )
 
 class_labels = [ 'NerovDorog', 'PrVstrech', 'SvetGo', 'SvetStop', 'park', 'stop', ]
 
 
 class NetProcess(Process):
-    def __init__(self, h, w, c):
+    def __init__(self, h, w, c, server=None):
         super().__init__()
 
         self.shape = (h, w, c)
@@ -31,8 +32,12 @@ class NetProcess(Process):
 
         self.started = Value('b', False)
 
+        self.server = server
+
     def run(self):
         super().run()
+
+        print(device)
 
         load_model = True
 
@@ -55,7 +60,6 @@ class NetProcess(Process):
         sh, eh = 0, h
         sw, ew = w - h, w
 
-        self.started.value = True
         while True:
             img = np.frombuffer(self.img_in.get_obj(), dtype=np.uint8).reshape(self.shape)
 
@@ -91,9 +95,10 @@ class NetProcess(Process):
                             # Plotting the image with bounding boxes for each image in the batch
 
                 # bbox = max(bboxes[i], key=lambda x: x[1])
-                boxes = [box for box in bboxes[0] if box[1] > 0.5]
-                # box = max(boxes, key=lambda x: (len(tuple(filter(lambda y: y[0] == x[0], boxes))), x[1]))
-                box = max(boxes, key=lambda x: max(filter(lambda y: y[0] == x[0], boxes))[1])
+                boxes = [box for box in bboxes[0] if box[1] > 0.75]
+                # boxes = nms(bboxes[0], 0.5, 0.5)
+                box = max(boxes, key=lambda x: (len(tuple(filter(lambda y: y[0] == x[0], boxes))), x[1], ))
+                # box = max(boxes, key=lambda x: max(filter(lambda y: y[0] == x[0], boxes))[1])
                 # box = max(boxes, key=lambda x: x[1])
                 # print(len([b for b in boxes if b[0] == box[0]]))
 
@@ -102,7 +107,8 @@ class NetProcess(Process):
 
                 # Get the class from the box
                 class_pred = box[0]
-                self.class_id.value = int(box[0])
+                self.class_id.value = int(class_pred)
+
                 perch = box[1]
                 # Get the center x and y coordinates
                 box = box[2:]
@@ -120,18 +126,30 @@ class NetProcess(Process):
                     (0, 0, 255),
                     2
                 )
+                cv2.rectangle(
+                    img,
+                    (int(upper_left_x * w - 10), int(upper_left_y * h - 30)),
+                    (int(upper_left_x * w + box[2] * w + 10), int(upper_left_y * h)),
+                    (1, 1, 1),
+                    -1
+                )
                 # print(class_labels[int(class_pred)], perch)
                 cv2.putText(
                     img,
                     f'{class_labels[int(class_pred)]} ({perch})',
-                    (int(upper_left_x * w), int(upper_left_y * h)),
+                    (int(upper_left_x * w), int(upper_left_y * h - 10)),
                     cv2.FONT_HERSHEY_SIMPLEX,
                     0.5,
-                    (0, 0, 255),
+                    (0, 0, 1),
                     2,
                 )
             except BaseException as e:
-                print(e)
+                # print(e)
                 pass
-            cv2.imshow('a', img)
-            cv2.waitKey(1)
+
+            if self.server:
+                np.copyto(np.frombuffer(self.server.img_net.get_obj(), dtype=np.uint8).reshape(img.shape), cv2.cvtColor((img * 255), cv2.COLOR_BGR2RGB).astype('uint8'))
+            # cv2.imshow('net', img)
+            # cv2.waitKey(1)
+            if not self.started.value:
+                self.started.value = True

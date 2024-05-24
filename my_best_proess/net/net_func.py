@@ -190,6 +190,7 @@ def load_checkpoint(checkpoint_file, model, optimizer, lr):
 
     for param_group in optimizer.param_groups:
         param_group["lr"] = lr
+    print("==> Loaded")
 
 
 class CNNBlock(nn.Module):

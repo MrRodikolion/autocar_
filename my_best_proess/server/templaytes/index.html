@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="ru">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Mr. Arolid</title>
+    <!-- Include Bootstrap CSS -->
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+       .i {
+            width: 100%;
+            height: auto;
+            object-fit: cover;
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Container for images -->
+    <div id="imageContainer" class="container">
+        <div class="row">
+            <div class="col-lg-6 col-sm-12">
+                <img class="i img-fluid" src="" alt="Изображение 1">
+            </div>
+            <div class="col-lg-6 col-sm-12">
+                <img class="i img-fluid" src="" alt="Изображение 2">
+            </div>
+            <div class="col-lg-6 col-sm-12">
+                <img class="i img-fluid" src="" alt="Изображение 3">
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Функция для отправки запроса на сервер и обновления изображений
+        function fetchAndDisplayImages() {
+            // URLs сервера, где хранятся изображения
+            const imageUrls = [
+                "{{ url_for('norm') }}",
+                "{{ url_for('road') }}",
+                "{{ url_for('net') }}"
+            ];
+
+            // Обновляем каждое изображение по очереди
+            imageUrls.forEach((imageUrl, index) => {
+                fetch(imageUrl)
+                   .then(response => response.blob()) // Получаем тело ответа как Blob
+                   .then(blob => {
+                        // Создаем объект URL для Blob
+                        const url = URL.createObjectURL(blob);
+                        // Находим соответствующий элемент img и обновляем его src
+                        document.querySelectorAll('.i')[index].src = url;
+                    })
+                   .catch(error => console.error(`Ошибка при загрузке изображения ${index + 1}:`, error));
+            });
+        }
+
+        // Запускаем функцию каждые 10 секунд (для демонстрации, можно установить меньшее значение)
+        setInterval(fetchAndDisplayImages, 0);
+
+        // Динамически изменяем расположение изображений в зависимости от размера окна
+        function adjustLayout() {
+            var images = document.querySelectorAll('#imageContainer.col');
+            var windowWidth = window.innerWidth || document.documentElement.clientWidth || document.body.clientWidth;
+            if (windowWidth >= 768) { // Для больших экранов
+                images[0].classList.remove('col-sm-12');
+                images[0].classList.add('col-lg-6');
+                images[1].classList.remove('col-sm-12');
+                images[1].classList.add('col-lg-6');
+                images[2].classList.remove('col-sm-12');
+                images[2].classList.add('col-lg-6');
+            } else { // Для маленьких экранов
+                images.forEach(function(img) {
+                    img.classList.remove('col-lg-6');
+                    img.classList.add('col-sm-12');
+                });
+            }
+        }
+
+        // При изменении размера окна проверяем и корректируем расположение изображений
+        window.addEventListener('resize', adjustLayout);
+
+        // Инициализируем правильный расклад при загрузке страницы
+        adjustLayout();
+    </script>
+
+</body>
+
+</html>

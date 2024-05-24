@@ -3,13 +3,14 @@ import cv2
 
 from time import time
 
+abs_centr = 290
 
 class Line:
     def __init__(self, z):
         '''
         :param z: halp of line
         '''
-        self.norm = 320
+        self.norm = abs_centr
         self.z = z
 
         self.lin = None
@@ -64,14 +65,14 @@ class Line:
 
             self.lin = self.centr_old
 
-        self.norm = int(320 - ((320 - self.lin[0]) // 1.5))
+        self.norm = int(abs_centr - ((abs_centr - self.lin[0]) // 1.5))
         self.centr_old = self.lin
         return self.lin
 
     def draw(self, img, N):
-        cv2.line(img, (self.lin[0], N), (self.lin[0], N + 5), (0, 0, 255), 3)
-        cv2.line(img, (self.norm - self.z, N), (self.norm + self.z, N), (0, 0, 255), 1)
-        cv2.line(img, (320, N), (320, N + 10), (255, 0, 0), 2)
+        cv2.line(img, (self.lin[0], N), (self.lin[0], N - 10), (0, 0, 255), 15)
+        cv2.line(img, (self.norm - self.z, N), (self.norm + self.z, N), (0, 0, 255), 5)
+        cv2.line(img, (abs_centr, N), (abs_centr, N + 10), (255, 0, 0), 3)
 
 
 class PID:
@@ -84,11 +85,11 @@ class PID:
         self.st_t = time()
 
     def __call__(self, centr):
-        error = 320 - centr
-        self.integral += error * self.ki * (self.st_t - time())
-        # self.integral = self.integral / (self.st_t - time())
+        error = abs_centr - centr
+        self.integral += error * self.ki # * (self.st_t - time())
+        self.integral = self.integral / (self.st_t - time())
         # integral = constrain(integral, 50, 500)
-        self.integral = max(-10, min(10, self.integral))
+        # self.integral = max(-20, min(20, self.integral))
 
         derivative = error - self.prev_error
 
@@ -97,7 +98,7 @@ class PID:
         self.prev_error = error
 
         # print(f'<------->\n_> angle: {angle}\n_> err: {error} | integ: {self.integral} | deriv: {derivative}')
-        self.st_t = time()
+        # self.st_t = time()
         return angle
 
 
