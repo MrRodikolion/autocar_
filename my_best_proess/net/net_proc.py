@@ -52,7 +52,8 @@ class NetProcess(Process):
 
         model.eval()
 
-        img = np.frombuffer(self.img_in.get_obj(), dtype=np.uint8).reshape(self.shape)
+        with self.img_in.get_lock():
+            img = np.frombuffer(self.img_in.get_obj(), dtype=np.uint8).reshape(self.shape).copy()
         h, w, _ = img.shape
 
         # x, y = 452, 240
@@ -61,7 +62,8 @@ class NetProcess(Process):
         sw, ew = w - h, w
 
         while True:
-            img = np.frombuffer(self.img_in.get_obj(), dtype=np.uint8).reshape(self.shape)
+            with self.img_in.get_lock():
+                img = np.frombuffer(self.img_in.get_obj(), dtype=np.uint8).reshape(self.shape).copy()
 
             img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
             h, w, _ = img.shape
@@ -96,6 +98,11 @@ class NetProcess(Process):
 
                 # bbox = max(bboxes[i], key=lambda x: x[1])
                 boxes = [box for box in bboxes[0] if box[1] > 0.75]
+                if not boxes:
+                    self.class_id.value = -1
+                    if not self.started.value:
+                        self.started.value = True
+                    continue
                 # boxes = nms(bboxes[0], 0.5, 0.5)
                 box = max(boxes, key=lambda x: (len(tuple(filter(lambda y: y[0] == x[0], boxes))), x[1], ))
                 # box = max(boxes, key=lambda x: max(filter(lambda y: y[0] == x[0], boxes))[1])
@@ -143,9 +150,9 @@ class NetProcess(Process):
                     (0, 0, 1),
                     2,
                 )
-            except BaseException as e:
-                # print(e)
-                pass
+            except Exception:
+                self.class_id.value = -1
+                raise
 
             if self.server:
                 np.copyto(np.frombuffer(self.server.img_net.get_obj(), dtype=np.uint8).reshape(img.shape), cv2.cvtColor((img * 255), cv2.COLOR_BGR2RGB).astype('uint8'))

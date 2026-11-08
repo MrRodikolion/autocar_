@@ -3,6 +3,7 @@ import torch.nn as nn
 import torch.optim as optim
 
 import cv2
+from pathlib import Path
 
 device = "cuda" if torch.cuda.is_available() else "cpu"
 
@@ -11,7 +12,7 @@ load_model = False
 save_model = True
 
 # model checkpoint file name
-checkpoint_file = "checkpoint.pth.tar"
+checkpoint_file = str(Path(__file__).resolve().parents[1] / 'checkpoint.pth.tar')
 
 # Anchor boxes for each feature map scaled between 0 and 1
 # 3 feature maps at 3 different scales based on YOLOv3 paper

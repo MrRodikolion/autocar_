@@ -32,12 +32,12 @@ class RoadProcess(Process):
 
         N = 470
 
-        self.started.value = True
         while True:
             try:
-                frame = np.frombuffer(self.img_in.get_obj(), dtype=np.uint8).reshape(self.shape)
+                with self.img_in.get_lock():
+                    frame = np.frombuffer(self.img_in.get_obj(), dtype=np.uint8).reshape(self.shape).copy()
 
-                img_gray = cv2.cvtColor(frame, cv2.COLOR_RGB2GRAY)
+                img_gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
                 _, img_gray = cv2.threshold(img_gray, l_th_r, 255, cv2.THRESH_BINARY)
 
                 line = lin.get_line(img_gray[N], 'f')
@@ -47,6 +47,7 @@ class RoadProcess(Process):
                 angle = pid(line[0])
 
                 self.angle.value = int(angle)
+                self.started.value = True
 
                 # ______________________________________________________________________________________________________________
                 drww = frame.copy()
@@ -61,6 +62,6 @@ class RoadProcess(Process):
                 # cv2.imshow('road', comb_img)
                 # cv2.waitKey(1)
                 # ______________________________________________________________________________________________________________
-            except BaseException as e:
-                # print(e)
-                pass
+            except Exception:
+                self.started.value = False
+                raise

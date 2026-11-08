@@ -1,7 +1,7 @@
 import numpy as np
 import cv2
 
-from time import time
+from time import monotonic
 
 abs_centr = 290
 
@@ -20,16 +20,16 @@ class Line:
         self.mas = None
 
     def find_centers(self, img):
-        self.mas = np.zeros((640, 2), dtype='int16')
+        self.mas = np.zeros((len(img), 2), dtype='int16')
 
         self.r = 0
-        c = self.norm - self.z
-        while c < self.norm + self.z:
+        c = max(0, self.norm - self.z)
+        while c < min(len(img), self.norm + self.z):
             e = c
 
             # cv2.circle(img_copy, (c, 400), 2, (0, 255, 0))
 
-            while e < 640 and img[e] < 255:
+            while e < len(img) and img[e] < 255:
                 e += 1
 
             lin = e - c
@@ -82,12 +82,13 @@ class PID:
         self.prev_error = 0
         self.integral = 0
 
-        self.st_t = time()
+        self.st_t = monotonic()
 
     def __call__(self, centr):
         error = abs_centr - centr
-        self.integral += error * self.ki # * (self.st_t - time())
-        self.integral = self.integral / (self.st_t - time())
+        now = monotonic()
+        dt = max(0.0, now - self.st_t)
+        self.integral += error * self.ki * dt
         # integral = constrain(integral, 50, 500)
         # self.integral = max(-20, min(20, self.integral))
 
@@ -96,6 +97,7 @@ class PID:
         angle = int(self.kp * error + self.integral + self.kd * derivative) + 90
 
         self.prev_error = error
+        self.st_t = now
 
         # print(f'<------->\n_> angle: {angle}\n_> err: {error} | integ: {self.integral} | deriv: {derivative}')
         # self.st_t = time()

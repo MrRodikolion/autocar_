@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="640" viewBox="0 0 1200 640" role="img" aria-labelledby="title desc">
+<title id="title">Autocar — логическая схема устройства</title><desc id="desc">Камера передаёт кадры компьютеру. Два процесса распознают линию и знаки. Компьютер передаёт UART-команды Arduino. Пины и силовая часть не определены.</desc>
+<defs><marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10Z" fill="#3984ac"/></marker></defs>
+<rect width="1200" height="640" rx="20" fill="#f3f7fb"/>
+<g font-family="Segoe UI,Arial,sans-serif" fill="#172f46"><text x="42" y="57" font-size="28" font-weight="700">AUTOCAR / связи из исходников</text><text x="42" y="90" font-size="17">Функциональная схема — не монтажная разводка</text>
+<g fill="white" stroke="#9bb7cd" stroke-width="2"><rect x="40" y="180" width="220" height="145" rx="12"/><rect x="325" y="130" width="460" height="290" rx="12"/><rect x="850" y="180" width="310" height="145" rx="12"/></g>
+<text x="65" y="218" font-size="23" font-weight="700">Камера</text><text x="65" y="251" font-size="17">OpenCV VideoCapture</text><text x="65" y="278" font-size="17">BGR 640 × 480</text><text x="350" y="168" font-size="23" font-weight="700">Компьютер / Python</text><text x="350" y="205" font-size="17">Модель компьютера не задана</text>
+<g fill="#e9f3fc"><rect x="350" y="230" width="190" height="80" rx="8"/><rect x="565" y="230" width="195" height="80" rx="8"/></g>
+<text x="366" y="261" font-size="18">RoadProcess</text><text x="366" y="288" font-size="16">Линия → PID → угол</text><text x="581" y="261" font-size="18">NetProcess</text><text x="581" y="288" font-size="16">YOLOv3 → класс</text>
+<text x="350" y="351" font-size="17">Общий кадр под блокировкой</text><text x="350" y="382" font-size="17">main.py: контроль старта и ошибок</text>
+<text x="875" y="218" font-size="23" font-weight="700">Arduino / UART</text><text x="875" y="251" font-size="17">115200 бод; $A / $T</text><text x="875" y="279" font-size="17">Прошивка не приложена</text>
+<g stroke="#3984ac" stroke-width="3" marker-end="url(#a)"><path d="M260 252H320"/><path d="M785 252H845"/><path d="M1005 330V458"/></g>
+<text x="790" y="225" font-size="14">serial</text>
+<rect x="850" y="465" width="310" height="105" rx="12" fill="#fff3db" stroke="#d4b475" stroke-dasharray="6 4"/>
+<text x="875" y="502" font-size="19">Приводы / драйверы</text><text x="875" y="534" font-size="16">Пины и питание неизвестны</text>
+<text x="42" y="492" font-size="18" font-weight="700">Что подтверждено</text><text x="42" y="525" font-size="17">Кадры → обработка → serial-команды. Реальный интерфейс камеры и</text><text x="42" y="552" font-size="17">монтаж UART/силовой части необходимо сверить с аппаратурой.</text>
+<text x="42" y="609" font-size="15" fill="#536b82">Источники: my_best_proess/main.py, road/, net/, arduino/arduino.py. Силовые цепи не реконструированы.</text></g></svg>
